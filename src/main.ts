@@ -2,6 +2,7 @@ import fs from "fs";
 import { NeoResponse } from "./interfaces.ts";
 import { devLog, getTimeInMinutes } from "./Utils.ts";
 import axios from "axios";
+axios.defaults.timeout = Infinity;
 
 async function getNeoData(trunkNo: number, trunkSize: number): Promise<NeoResponse> {
   devLog("Get trunk", trunkNo);
@@ -15,7 +16,7 @@ async function getNeoData(trunkNo: number, trunkSize: number): Promise<NeoRespon
 }
 
 const RESULT_FILE_NAME = "result.csv";
-const TRUNK_SIZE = 2000;
+const TRUNK_SIZE = 300000;
 
 async function main() {
   let totalCount = 0;
@@ -34,6 +35,7 @@ async function main() {
       totalCount++;
     }
     trunkNo += 1;
+    devLog("Current counts: ", trunkNo * TRUNK_SIZE);
     neoResponse = await getNeoData(trunkNo, TRUNK_SIZE);
   }
   fs.closeSync(resultFile);

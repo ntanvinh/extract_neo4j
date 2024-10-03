@@ -15,27 +15,33 @@ async function getNeoData(trunkNo: number, trunkSize: number): Promise<NeoRespon
 }
 
 const RESULT_FILE_NAME = "result.csv";
-const TRUNK_SIZE = 300000;
+const TRUNK_SIZE = 2000;
 
 async function main() {
   let totalCount = 0;
   let trunkNo = 0;
+  devLog("Trunk size: ", TRUNK_SIZE);
   const startTime = new Date();
   // get data from API
   let neoResponse = await getNeoData(trunkNo, TRUNK_SIZE);
   // create csv file
-  fs.writeFileSync(RESULT_FILE_NAME, neoResponse.columns.join(",") + "\n", "utf8",);
+  const resultFile = fs.openSync(RESULT_FILE_NAME, "w");
+  fs.writeFileSync(resultFile, neoResponse.columns.join(",") + "\n");
 
   while (neoResponse.data.length > 0) {
     for (const datum of neoResponse.data) {
-      fs.appendFileSync(RESULT_FILE_NAME, datum.map(item => `${ item }`).join(",") + "\n", "utf8");
+      fs.appendFileSync(resultFile, datum.map(item => `${ item }`).join(",") + "\n");
       totalCount++;
     }
-    neoResponse = await getNeoData(trunkNo + 1, TRUNK_SIZE);
+    trunkNo += 1;
+    neoResponse = await getNeoData(trunkNo, TRUNK_SIZE);
   }
+  fs.closeSync(resultFile);
+
   const endTime = new Date();
   devLog("Total counts: ", totalCount);
   devLog("Executed time: ", getTimeInMinutes(startTime, endTime));
+  devLog("Result file: ", RESULT_FILE_NAME);
 }
 
 main().then();

@@ -2,7 +2,10 @@ import fs from "fs";
 import { NeoResponse } from "./interfaces.ts";
 import { devLog, getTimeInMinutes } from "./Utils.ts";
 import axios from "axios";
-axios.defaults.timeout = Infinity;
+
+const RESULT_FILE_NAME = "result.csv";
+const TRUNK_SIZE = 300000;
+const TIMEOUT_MS = 3600000;
 
 async function getNeoData(trunkNo: number, trunkSize: number): Promise<NeoResponse> {
   devLog("Get trunk", trunkNo);
@@ -10,13 +13,10 @@ async function getNeoData(trunkNo: number, trunkSize: number): Promise<NeoRespon
   const queryStr = `MATCH (pc:ProductCode) RETURN pc.code, pc.codeType, pc.deleted, pc.active, pc.activeTime, pc.createdDate, pc.serial SKIP ${ trunkSize * trunkNo } LIMIT ${ trunkSize }`;
   const resp = await axios.post("http://localhost:7474/db/data/cypher", {
     "query": queryStr,
-  }).then();
+  }, { timeout: TIMEOUT_MS }).then();
 
   return resp.data;
 }
-
-const RESULT_FILE_NAME = "result.csv";
-const TRUNK_SIZE = 300000;
 
 async function main() {
   let totalCount = 0;

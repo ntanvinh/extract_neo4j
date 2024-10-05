@@ -1,11 +1,21 @@
 import fs from "fs";
-import { NeoResponse } from "./interfaces.ts";
+import { NeoResponse, ResultSetType } from "./interfaces.ts";
 import { devLog, getTimeInMinutes } from "./Utils.ts";
 import axios from "axios";
 
-const RESULT_FILE_NAME = "result.csv";
+const RESULT_FILE_NAME = "felix-neo4j-db.csv";
 const TRUNK_SIZE = 300000;
 const TIMEOUT_MS = 3600000;
+
+function transformNeoDataItem(itemValues: ResultSetType): [string, number, boolean, boolean, string, string, string] {
+  // ["Y4X4XTKPLL", 1, false, true, 1531183071977, 1529482460647, "0000001"]
+
+  return [itemValues[0], itemValues[1], itemValues[2], itemValues[3], new Date(itemValues[4]).toISOString(), new Date(itemValues[5]).toISOString(), itemValues[6]];
+
+}
+
+// test
+console.log(transformNeoDataItem(["Y4X4XTKPLL", 1, false, true, 1531183071977, 1529482460647, "0000001"]));
 
 async function getNeoData(trunkNo: number, trunkSize: number): Promise<NeoResponse> {
   devLog("Get trunk", trunkNo);
@@ -31,18 +41,18 @@ async function main() {
 
   while (neoResponse.data.length > 0) {
     for (const datum of neoResponse.data) {
-      fs.appendFileSync(resultFile, datum.map(item => `${ item }`).join(",") + "\n");
+      fs.appendFileSync(resultFile, transformNeoDataItem(datum).map(item => `${ item }`).join(",") + "\n");
       totalCount++;
     }
     trunkNo += 1;
-    devLog("Current counts: ", trunkNo * TRUNK_SIZE);
+    devLog("Current counts: ", totalCount);
     neoResponse = await getNeoData(trunkNo, TRUNK_SIZE);
   }
   fs.closeSync(resultFile);
 
   const endTime = new Date();
   devLog("Total counts: ", totalCount);
-  devLog("Executed time: ", getTimeInMinutes(startTime, endTime));
+  devLog("Executed time in minutes: ", getTimeInMinutes(startTime, endTime));
   devLog("Result file: ", RESULT_FILE_NAME);
 }
 

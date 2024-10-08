@@ -40,6 +40,7 @@ async function main() {
   let trunkNo = 0;
   devLog("Trunk size: ", TRUNK_SIZE);
   const startTime = new Date();
+  let chunkStartTime = new Date();
   // get data from API
   let neoResponse = await getNeoData(trunkNo, TRUNK_SIZE);
   // create csv file
@@ -47,12 +48,16 @@ async function main() {
   fs.writeFileSync(resultFile, neoResponse.columns.join(",") + "\n");
 
   while (neoResponse.data.length > 0) {
+
     for (const datum of neoResponse.data) {
       fs.appendFileSync(resultFile, transformNeoDataItem(datum).map(item => `${ item }`).join(",") + "\n");
       totalCount++;
     }
+    const chunkEndTime = new Date();
+    devLog("Current counts: ", totalCount, `${getTimeInMinutes(chunkStartTime, chunkEndTime)} minutes`);
     trunkNo += 1;
-    devLog("Current counts: ", totalCount);
+
+    chunkStartTime = new Date();
     neoResponse = await getNeoData(trunkNo, TRUNK_SIZE);
   }
   fs.closeSync(resultFile);

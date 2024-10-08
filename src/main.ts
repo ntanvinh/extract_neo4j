@@ -1,16 +1,23 @@
 import fs from "fs";
 import { NeoResponse, ResultSetType } from "./interfaces.ts";
-import { devLog, getTimeInMinutes } from "./Utils.ts";
+import { devLog, getTimeInMinutes, toISODate } from "./Utils.ts";
 import axios from "axios";
 
 const RESULT_FILE_NAME = "felix-neo4j-db.csv";
-const TRUNK_SIZE = 300000;
+const TRUNK_SIZE = 500000;
 const TIMEOUT_MS = 3600000;
 
 function transformNeoDataItem(itemValues: ResultSetType): [string, number, boolean, boolean, string, string, string] {
-  // ["Y4X4XTKPLL", 1, false, true, 1531183071977, 1529482460647, "0000001"]
+  ["Y4X4XTKPLL", 1, false, true, 1531183071977, 1529482460647, "0000001"]
 
-  return [itemValues[0], itemValues[1], itemValues[2], itemValues[3], new Date(itemValues[4]).toISOString(), new Date(itemValues[5]).toISOString(), itemValues[6]];
+  return [
+    itemValues[0], 
+    itemValues[1], 
+    itemValues[2], 
+    itemValues[3], 
+    toISODate(new Date(itemValues[4])), 
+    toISODate(new Date(itemValues[5])), 
+    itemValues[6]];
 
 }
 
